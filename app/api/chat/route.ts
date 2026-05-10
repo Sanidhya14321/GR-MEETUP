@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { chatCompletion } from '@/lib/groq-client';
+import { chatCompletion, hasValidGroqApiKey } from '@/lib/groq-client';
 import { SYSTEM_PROMPT_TUTOR } from '@/lib/prompts';
 import type { Message } from '@/lib/types';
 import { createTutorResponse } from '@/lib/server/mock';
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       ...messages,
     ];
 
-    const hasKey = Boolean(process.env.GROQ_API_KEY || process.env['GROQ-API-KEY']);
+    const hasKey = hasValidGroqApiKey();
     const shouldStream = Boolean(body.stream);
 
     if (!hasKey) {
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+              Authorization: `Bearer ${process.env.GROQ_API_KEY ?? process.env['GROQ-API-KEY'] ?? ''}`,
             },
             body: JSON.stringify({
               model: 'llama-3.3-70b-versatile',

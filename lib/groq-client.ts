@@ -1,5 +1,18 @@
 const API_KEY = process.env.GROQ_API_KEY || process.env['GROQ-API-KEY'] || '';
 
+export function hasValidGroqApiKey(): boolean {
+  if (!API_KEY) {
+    return false;
+  }
+
+  const normalizedKey = API_KEY.trim().toLowerCase();
+  return !normalizedKey.startsWith('your_') && !normalizedKey.includes('placeholder') && !normalizedKey.includes('example');
+}
+
+export function getGroqApiKey(): string {
+  return hasValidGroqApiKey() ? API_KEY : '';
+}
+
 if (!API_KEY) {
   console.warn('GROQ_API_KEY environment variable is not set');
 }
@@ -27,6 +40,7 @@ export async function chatCompletion(
   messages: ChatCompletionMessage[],
   options: GroqCompletionOptions = {}
 ): Promise<string> {
+  const activeApiKey = getGroqApiKey();
   const url = 'https://api.groq.com/openai/v1/chat/completions';
 
   const requestBody = {
@@ -42,7 +56,7 @@ export async function chatCompletion(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
+      Authorization: `Bearer ${activeApiKey}`,
     },
     body: JSON.stringify(requestBody),
   });
@@ -61,13 +75,14 @@ export async function streamChatCompletion(
   onChunk: (chunk: string) => void,
   options: GroqCompletionOptions = {}
 ): Promise<string> {
+  const activeApiKey = getGroqApiKey();
   const url = 'https://api.groq.com/openai/v1/chat/completions';
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
+      Authorization: `Bearer ${activeApiKey}`,
     },
     body: JSON.stringify({
       model: options.model || MODEL,
