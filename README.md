@@ -1,6 +1,10 @@
 # Chatraplaksh
 
-A simple study workspace for students who want help with four common tasks:
+A simple study workspace for students who want help with four common tasks.
+
+Live deployment: https://gr-meetup.vercel.app/
+
+Core tasks:
 
 - **Chat** with an AI tutor for explanations and study help
 - **Generate quizzes** by topic and difficulty
@@ -38,7 +42,7 @@ From running the app locally, the main user flows are:
 
 ## Requirements
 
-- [Bun](https://bun.sh/)
+- npm
 - Node.js 18+
 - A `GROQ_API_KEY` in your environment file for live AI-backed responses
 
@@ -47,7 +51,7 @@ From running the app locally, the main user flows are:
 1. Install dependencies:
 
 ```bash
-bun install
+npm install
 ```
 
 2. Create an environment file:
@@ -67,7 +71,7 @@ GROQ_API_KEY=your_key_here
 Start the development server:
 
 ```bash
-bun run dev
+npm run dev
 ```
 
 Then open:
@@ -79,12 +83,12 @@ http://localhost:3000
 ## Available scripts
 
 ```bash
-bun run dev        # start local dev server
-bun run build      # production build
-bun run start      # run production server
-bun run lint       # lint the project
-bun run type-check # TypeScript checks
-bun run format     # format files
+npm run dev        # start local dev server
+npm run build      # production build
+npm run start      # run production server
+npm run lint       # lint the project
+npm run type-check # TypeScript checks
+npm run format     # format files
 ```
 
 ## How to use it
