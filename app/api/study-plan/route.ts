@@ -4,6 +4,15 @@ import { createStudyPlan } from '@/lib/server/mock';
 import { isDateInFuture, parseDate } from '@/lib/utils/date';
 import { hasValidGroqApiKey } from '@/lib/groq-client';
 
+const MAX_STUDY_PLAN_DAYS = 90;
+
+function getDaysUntilDeadline(examDate: Date): number {
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const startOfDeadline = new Date(examDate.getFullYear(), examDate.getMonth(), examDate.getDate());
+  return Math.max(1, Math.ceil((startOfDeadline.getTime() - startOfToday.getTime()) / 86400000));
+}
+
 function parseStudyPlanContent(content: string): unknown | null {
   const trimmed = content.trim();
   const unwrapped = trimmed
@@ -45,6 +54,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'examDate must be a future date' }, { status: 400 });
     }
 
+    const examDate = parseDate(body.examDate) as Date;
+    if (getDaysUntilDeadline(examDate) > MAX_STUDY_PLAN_DAYS) {
+      return NextResponse.json({ error: 'examDate must be within 90 days' }, { status: 400 });
+    }
+
     if (!Number.isFinite(body.hoursPerDay) || !body.hoursPerDay || body.hoursPerDay <= 0) {
       return NextResponse.json({ error: 'hoursPerDay must be greater than 0' }, { status: 400 });
     }
@@ -69,7 +83,7 @@ export async function POST(request: NextRequest) {
           { role: 'system', content: SYSTEM_PROMPT_STUDY_PLAN },
           {
             role: 'user',
-            content: `Create a study plan for ${body.subject} with exam date ${body.examDate}, current level ${body.currentLevel}, ${body.hoursPerDay} hours per day, and these topics: ${topics.join(', ')}. Return JSON only.`,
+            content: `Create a study plan for ${body.subject} with exam date ${body.examDate}, current level ${body.currentLevel}, ${body.hoursPerDay} hours per day, and these topics: ${topics.join(', ')}. Respect the exam deadline and keep the plan within 90 days. Return JSON only.`,
           },
         ],
         temperature: 0.3,

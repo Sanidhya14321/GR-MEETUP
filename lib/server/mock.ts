@@ -1,5 +1,14 @@
 import type { Day, Message, Question, StudyPlan, Week } from '@/lib/types';
 
+const MAX_STUDY_PLAN_DAYS = 90;
+
+function getDaysUntilDeadline(examDate: Date): number {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDeadline = new Date(examDate.getFullYear(), examDate.getMonth(), examDate.getDate());
+  return Math.max(1, Math.ceil((startOfDeadline.getTime() - startOfToday.getTime()) / 86400000));
+}
+
 function extractKeywords(text: string, limit = 5): string[] {
   const words = text
     .toLowerCase()
@@ -76,7 +85,7 @@ export function createStudyPlan(
 ): StudyPlan & { totalDays: number } {
   const start = new Date();
   const end = new Date(examDate);
-  const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / 86400000));
+  const totalDays = Math.min(MAX_STUDY_PLAN_DAYS, getDaysUntilDeadline(end));
   const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
   const topicPool = topics.length > 0 ? topics : [subject];
 
@@ -84,16 +93,18 @@ export function createStudyPlan(
     const days: Day[] = Array.from({ length: Math.min(7, totalDays - weekIndex * 7) }, (_, dayIndex) => {
       const globalDay = weekIndex * 7 + dayIndex + 1;
       const topic = topicPool[(globalDay - 1) % topicPool.length];
-      const duration = Math.max(45, hoursPerDay * 60);
+      const duration = Math.max(45, Math.min(240, hoursPerDay * 60));
+      const remainingDays = totalDays - globalDay + 1;
+      const intensity = remainingDays <= 7 ? 'Final review' : remainingDays <= 21 ? 'Practice and consolidation' : 'Learning and practice';
 
       return {
         day: globalDay,
-        date: new Date(start.getTime() + globalDay * 86400000),
+        date: new Date(start.getTime() + (globalDay - 1) * 86400000),
         topics: [topic],
         tasks: [
-          `Review core concepts in ${topic}`,
-          `Complete targeted practice on ${topic}`,
+          `${intensity} for ${topic}`,
           currentLevel.toLowerCase() === 'beginner' ? 'Write short notes' : 'Solve mixed problems',
+          remainingDays <= 7 ? 'Complete a short timed recap' : 'Complete targeted practice on the topic',
         ],
         duration,
         completed: false,
@@ -108,7 +119,7 @@ export function createStudyPlan(
     examDate: new Date(examDate),
     weeks,
     tips: [
-      'Keep the first session light and build momentum.',
+      'The schedule is capped at 90 days and stops on the exam date.',
       'End each week with one short review block.',
       'Use active recall instead of rereading notes only.',
     ],
