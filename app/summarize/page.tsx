@@ -11,12 +11,18 @@ export default function SummarizePage() {
   const [summaryType, setSummaryType] = useState<'brief' | 'detailed' | 'comprehensive'>('detailed');
   const [summary, setSummary] = useState('');
   const [keyPoints, setKeyPoints] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const charCount = text.length;
   const wordCount = useMemo(() => countWords(text), [text]);
   const readingTime = useMemo(() => estimateReadingTime(text), [text]);
+  const summaryWordCount = useMemo(() => countWords(summary), [summary]);
+  const reductionPercent = useMemo(() => {
+    if (!wordCount || !summaryWordCount) return 0;
+    return Math.max(0, Math.round(((wordCount - summaryWordCount) / wordCount) * 100));
+  }, [summaryWordCount, wordCount]);
 
   const handleSummarize = async () => {
     if (!text.trim()) {
@@ -41,11 +47,19 @@ export default function SummarizePage() {
       const data = (await response.json()) as { summary: string; keyPoints: string[] };
       setSummary(data.summary);
       setKeyPoints(data.keyPoints);
+      setCopied(false);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Something went wrong.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCopySummary = async () => {
+    if (!summary) return;
+    await navigator.clipboard.writeText(summary);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
   };
 
   return (
@@ -106,10 +120,30 @@ export default function SummarizePage() {
               <div className="flex items-center gap-2 text-sm text-neutral-500"><LoadingSpinner size="sm" /> Generating summary</div>
             ) : summary ? (
               <>
-                <p className="whitespace-pre-wrap text-sm leading-6 text-neutral-700">{summary}</p>
-                <div>
-                  <h3 className="text-sm font-medium text-neutral-900">Key points</h3>
-                  <ul className="mt-3 space-y-2 text-sm text-neutral-600">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-700">
+                      {summaryType} summary
+                    </span>
+                    <span className="rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-700">
+                      Professional format
+                    </span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => void handleCopySummary()}>
+                    {copied ? 'Copied' : 'Copy summary'}
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Executive summary</h3>
+                  <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+                    <p className="whitespace-pre-wrap text-sm leading-7 text-neutral-700">{summary}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Key points</h3>
+                  <ul className="space-y-2 text-sm text-neutral-600">
                     {keyPoints.map((point) => (
                       <li key={point} className="flex gap-2">
                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-neutral-400" />
@@ -118,15 +152,30 @@ export default function SummarizePage() {
                     ))}
                   </ul>
                 </div>
+
                 <div className="grid grid-cols-2 gap-3 text-sm text-neutral-500">
-                  <div className="rounded-2xl bg-neutral-50 p-4">
-                    <p className="text-neutral-400">Word count</p>
+                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                    <p className="text-neutral-400">Original words</p>
                     <p className="mt-1 text-lg font-medium text-neutral-900">{wordCount}</p>
                   </div>
-                  <div className="rounded-2xl bg-neutral-50 p-4">
-                    <p className="text-neutral-400">Reading time</p>
+                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                    <p className="text-neutral-400">Summary words</p>
+                    <p className="mt-1 text-lg font-medium text-neutral-900">{summaryWordCount}</p>
+                  </div>
+                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                    <p className="text-neutral-400">Reduction</p>
+                    <p className="mt-1 text-lg font-medium text-neutral-900">{reductionPercent}%</p>
+                  </div>
+                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                    <p className="text-neutral-400">Estimated reading</p>
                     <p className="mt-1 text-lg font-medium text-neutral-900">{readingTime} min</p>
                   </div>
+                </div>
+
+                <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600">
+                  <p>
+                    Word count comparison: approximately {wordCount} words in the original text versus {summaryWordCount} words in the summary.
+                  </p>
                 </div>
               </>
             ) : (
