@@ -5,8 +5,8 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Student Study Companion',
-  description: 'A focused study workspace for tutoring, quizzes, summaries, and planning.',
+  title: 'Chatraplaksh',
+  description: 'A focused study workspace with a light Atlas-inspired interface.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

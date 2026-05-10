@@ -99,7 +99,7 @@ export default function SummarizePage() {
                   key={option}
                   type="button"
                   onClick={() => setSummaryType(option)}
-                  className={`rounded-full border px-4 py-2 text-sm transition-colors ${summaryType === option ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'}`}
+                  className={`rounded-full border px-4 py-2 text-sm transition-colors ${summaryType === option ? 'border-[#2f93d1] bg-[#2f93d1] text-white' : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'}`}
                 >
                   {option}
                 </button>

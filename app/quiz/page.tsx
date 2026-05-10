@@ -74,7 +74,7 @@ export default function QuizPage() {
         <div className="space-y-6">
           <Card className="overflow-hidden p-0">
             <div className="h-2 bg-neutral-100">
-              <div className="h-full bg-neutral-900" style={{ width: `${progress}%` }} />
+              <div className="h-full bg-[#2f93d1]" style={{ width: `${progress}%` }} />
             </div>
             <div className="p-6">
               {currentQuestion ? (

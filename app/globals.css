@@ -31,7 +31,7 @@ html {
 
 /* Typography */
 body {
-  @apply text-neutral-700 bg-neutral-50;
+  @apply bg-neutral-50 text-neutral-700;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -40,7 +40,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Focus ring utility */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  @apply focus:outline-none focus:ring-2 focus:ring-[#2f93d1] focus:ring-offset-2 focus:ring-offset-white;
 }
 
 /* Loading animation */

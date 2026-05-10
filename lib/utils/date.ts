@@ -18,9 +18,14 @@ export function formatDateTime(date: Date): string {
   return `${formatDate(date)} at ${formatTime(date)}`;
 }
 
-export function formatRelativeTime(date: Date): string {
+export function formatRelativeTime(date: Date | string | null | undefined): string {
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  if (!date) return 'Just now';
+
+  const d: Date | null = typeof date === 'string' ? parseDate(date) : date instanceof Date ? date : null;
+  if (!d) return 'Unknown';
+
+  const diffMs = now.getTime() - d.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -30,7 +35,7 @@ export function formatRelativeTime(date: Date): string {
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 
-  return formatDate(date);
+  return formatDate(d);
 }
 
 export function getDaysBetween(start: Date, end: Date): number {

@@ -11,8 +11,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses = {
-  primary: 'bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm',
-  secondary: 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200',
+  primary: 'bg-[#2f93d1] text-white hover:bg-[#267db1] shadow-sm',
+  secondary: 'bg-[#eaf5fc] text-[#154465] hover:bg-[#d8ecf9]',
   outline: 'border border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50',
   ghost: 'bg-transparent text-neutral-700 hover:bg-neutral-100',
 };
@@ -45,7 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={isDisabled}
       aria-disabled={isDisabled}
       aria-busy={isLoading}
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`.trim()}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[#2f93d1] focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`.trim()}
       {...props}
     >
       {isLoading ? <LoadingSpinner size="sm" colorClassName="border-white" /> : leftIcon}
