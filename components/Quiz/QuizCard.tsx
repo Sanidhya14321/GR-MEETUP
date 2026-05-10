@@ -18,14 +18,30 @@ export function QuizCard({
   questionNumber,
   totalQuestions,
 }: QuizCardProps) {
+  const isCorrect = showResult && selectedAnswer === question.correctAnswer;
+  const hasAnswered = selectedAnswer !== null;
+  const correctAnswerLabel = question.options[question.correctAnswer];
+  const userAnswerLabel = selectedAnswer === null ? 'Not answered' : question.options[selectedAnswer];
+
   return (
-    <Card className="w-full" padding="lg">
+    <Card className="w-full border border-neutral-200/80 bg-white shadow-sm" padding="lg">
       <div className="space-y-6">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-neutral-500">
-            Question {questionNumber} of {totalQuestions}
-          </p>
-          <h3 className="text-2xl font-semibold tracking-tight text-neutral-900">{question.question}</h3>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium uppercase tracking-wide text-neutral-500">
+              Question {questionNumber} of {totalQuestions}
+            </p>
+            <h3 className="text-2xl font-semibold tracking-tight text-neutral-900">{question.question}</h3>
+          </div>
+          {showResult ? (
+            <div
+              className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                isCorrect ? 'bg-success-50 text-success-700' : 'bg-error-50 text-error-700'
+              }`}
+            >
+              {isCorrect ? 'Correct' : 'Incorrect'}
+            </div>
+          ) : null}
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           {question.options.map((option, index) => {
@@ -62,7 +78,21 @@ export function QuizCard({
             );
           })}
         </div>
-        {showResult ? <div className="rounded-2xl bg-neutral-50 p-4 text-sm leading-6 text-neutral-700">{question.explanation}</div> : null}
+        {showResult ? (
+          <div className="grid gap-3 rounded-2xl bg-neutral-50 p-4 text-sm leading-6 text-neutral-700 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Your answer</p>
+              <p className="font-medium text-neutral-900">{hasAnswered ? userAnswerLabel : 'No answer submitted'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Correct answer</p>
+              <p className="font-medium text-neutral-900">{correctAnswerLabel}</p>
+            </div>
+            <div className="md:col-span-2 rounded-xl border border-neutral-200 bg-white p-4 text-neutral-700">
+              {question.explanation}
+            </div>
+          </div>
+        ) : null}
       </div>
     </Card>
   );

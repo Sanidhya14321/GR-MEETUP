@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 const links = [
@@ -12,12 +13,9 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-neutral-200/90 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="inline-flex items-center gap-3 text-base font-semibold tracking-tight text-neutral-900">
-          <span
-            aria-hidden="true"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#2f93d1] text-sm font-semibold text-white"
-          >
-            P
-          </span>
+          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-[#2f93d1] text-sm font-semibold text-white">
+            <Image src="/logo.jpeg" alt="Plaksha logo" width={32} height={32} className="h-8 w-8 object-cover" priority />
+          </div>
           <span>Chatraplaksh</span>
         </Link>
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary navigation">

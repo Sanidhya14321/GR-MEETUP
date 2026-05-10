@@ -20,6 +20,10 @@ export default function QuizPage() {
     return ((currentQuestionIndex + 1) / questions.length) * 100;
   }, [currentQuestionIndex, questions.length]);
 
+  const allAttempted = useMemo(() => {
+    return questions.length > 0 && selectedAnswers.length === questions.length && selectedAnswers.every((a) => a !== null);
+  }, [questions.length, selectedAnswers]);
+
   const handleGenerate = async () => {
     await generateQuiz(topic, difficulty, numQuestions);
     setSubmittedScore(null);
@@ -100,7 +104,13 @@ export default function QuizPage() {
               </Button>
             </div>
             {!isComplete ? (
-              <Button onClick={handleSubmit}>Submit quiz</Button>
+              allAttempted ? (
+                <Button onClick={handleSubmit}>Submit quiz</Button>
+              ) : (
+                <div className="rounded-full border border-dashed border-neutral-300 bg-neutral-50 px-4 py-2 text-sm text-neutral-500">
+                  Answer all questions to unlock Submit
+                </div>
+              )
             ) : (
               <div className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-700">
                 Score: {submittedScore ?? score}/{questions.length}
@@ -110,16 +120,42 @@ export default function QuizPage() {
 
           {isComplete ? (
             <Card header={<h2 className="text-lg font-semibold text-neutral-900">Review</h2>}>
+              <div className="mb-6 grid gap-4 rounded-3xl bg-neutral-50 p-5 md:grid-cols-[1.5fr_1fr] md:items-center">
+                <div>
+                  <p className="text-sm font-medium uppercase tracking-wide text-neutral-500">Quiz results</p>
+                  <h3 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
+                    {score}/{questions.length} correct
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-neutral-600">
+                    Here is a full review of every question, with your selection, the right answer, and the explanation.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-success-200 bg-success-50 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-success-700">Correct</p>
+                    <p className="mt-2 text-2xl font-semibold text-success-900">{score}</p>
+                  </div>
+                  <div className="rounded-2xl border border-error-200 bg-error-50 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-error-700">Incorrect</p>
+                    <p className="mt-2 text-2xl font-semibold text-error-900">{questions.length - score}</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 {questions.map((question, index) => (
-                  <div key={question.id} className="rounded-2xl border border-neutral-200 p-4">
-                    <p className="text-sm font-medium text-neutral-900">Question {index + 1}</p>
-                    <p className="mt-1 text-sm text-neutral-600">{question.question}</p>
-                    <p className="mt-2 text-sm text-neutral-500">Correct answer: {question.options[question.correctAnswer]}</p>
-                    <p className="mt-2 text-sm text-neutral-500">{question.explanation}</p>
-                  </div>
+                  <QuizCard
+                    key={question.id}
+                    question={question}
+                    selectedAnswer={selectedAnswers[index] ?? null}
+                    onSelectAnswer={() => {}}
+                    showResult
+                    questionNumber={index + 1}
+                    totalQuestions={questions.length}
+                  />
                 ))}
               </div>
+
               <div className="mt-6 flex gap-3">
                 <Button variant="outline" onClick={resetQuiz}>
                   Retry
