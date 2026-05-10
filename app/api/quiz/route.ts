@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYSTEM_PROMPT_QUIZ } from '@/lib/prompts';
 import { createQuizQuestions } from '@/lib/server/mock';
+import { hasValidGroqApiKey } from '@/lib/groq-client';
 
 interface QuizRequestBody {
   topic?: string;
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'numQuestions must be between 3 and 20' }, { status: 400 });
     }
 
-    const hasKey = Boolean(process.env.GROQ_API_KEY || process.env['GROQ-API-KEY']);
+    const hasKey = hasValidGroqApiKey();
 
     if (!hasKey) {
       return NextResponse.json({ questions: createQuizQuestions(body.topic, body.difficulty, body.numQuestions) });
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY ?? process.env['GROQ-API-KEY'] ?? ''}`,
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',

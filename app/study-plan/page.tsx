@@ -6,6 +6,10 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
+function formatDateInput(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 interface StudyDay {
   day: number;
   topics: string[];
@@ -28,7 +32,7 @@ interface StudyPlanResponse {
 
 export default function StudyPlanPage() {
   const [subject, setSubject] = useState('Mathematics');
-  const [examDate, setExamDate] = useState('');
+  const [examDate, setExamDate] = useState(() => formatDateInput(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)));
   const [currentLevel, setCurrentLevel] = useState('Intermediate');
   const [hoursPerDay, setHoursPerDay] = useState(2);
   const [topics, setTopics] = useState('Algebra, Geometry, Trigonometry');
@@ -55,7 +59,8 @@ export default function StudyPlanPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Unable to generate the study plan.');
+        const data = (await response.json().catch(() => null)) as { error?: string; warning?: string } | null;
+        throw new Error(data?.error || data?.warning || 'Unable to generate the study plan.');
       }
 
       const data = (await response.json()) as StudyPlanResponse;
@@ -99,7 +104,7 @@ export default function StudyPlanPage() {
                 Generate plan
               </Button>
             </div>
-            {error ? <p className="text-sm text-error-600">{error}</p> : null}
+            {error ? <p className="text-sm leading-6 text-error-600">{error}</p> : null}
             {isLoading ? <div className="flex items-center gap-2 text-sm text-neutral-500"><LoadingSpinner size="sm" /> Building schedule</div> : null}
           </div>
         </Card>

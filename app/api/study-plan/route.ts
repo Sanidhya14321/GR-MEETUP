@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SYSTEM_PROMPT_STUDY_PLAN } from '@/lib/prompts';
 import { createStudyPlan } from '@/lib/server/mock';
 import { isDateInFuture, parseDate } from '@/lib/utils/date';
+import { hasValidGroqApiKey } from '@/lib/groq-client';
+
+function parseStudyPlanContent(content: string): unknown | null {
+  const trimmed = content.trim();
+  const unwrapped = trimmed
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '');
+
+  try {
+    return JSON.parse(unwrapped);
+  } catch {
+    try {
+      const match = unwrapped.match(/\{[\s\S]*\}/);
+      return match ? JSON.parse(match[0]) : null;
+    } catch {
+      return null;
+    }
+  }
+}
 
 interface StudyPlanRequestBody {
   subject?: string;
@@ -12,8 +32,10 @@ interface StudyPlanRequestBody {
 }
 
 export async function POST(request: NextRequest) {
+  let body: StudyPlanRequestBody = {};
+
   try {
-    const body = (await request.json()) as StudyPlanRequestBody;
+    body = (await request.json()) as StudyPlanRequestBody;
 
     if (!body.subject?.trim()) {
       return NextResponse.json({ error: 'subject is required' }, { status: 400 });
@@ -28,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const topics = Array.isArray(body.topics) ? body.topics.filter((topic) => topic.trim()) : [];
-    const hasKey = Boolean(process.env.GROQ_API_KEY || process.env['GROQ-API-KEY']);
+    const hasKey = hasValidGroqApiKey();
 
     if (!hasKey) {
       const plan = createStudyPlan(body.subject, body.examDate, body.currentLevel ?? 'Intermediate', body.hoursPerDay, topics);
@@ -39,7 +61,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY ?? process.env['GROQ-API-KEY'] ?? ''}`,
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
@@ -63,10 +85,18 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json() as { choices: Array<{ message: { content: string } }> };
-    const plan = JSON.parse(data.choices[0]?.message?.content ?? '{}');
+    const modelContent = data.choices[0]?.message?.content ?? '';
+    const parsedPlan = parseStudyPlanContent(modelContent);
 
-    return NextResponse.json({ plan });
+    if (!parsedPlan || typeof parsedPlan !== 'object') {
+      const fallbackPlan = createStudyPlan(body.subject, body.examDate, body.currentLevel ?? 'Intermediate', body.hoursPerDay, topics);
+      return NextResponse.json({ plan: fallbackPlan });
+    }
+
+    return NextResponse.json({ plan: parsedPlan });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unexpected error' }, { status: 500 });
+    const fallbackTopics = Array.isArray(body.topics) ? body.topics.filter((topic: string) => topic.trim()) : [];
+    const fallbackPlan = createStudyPlan(body.subject ?? 'Study', body.examDate ?? new Date().toISOString(), body.currentLevel ?? 'Intermediate', body.hoursPerDay ?? 2, fallbackTopics);
+    return NextResponse.json({ plan: fallbackPlan, warning: error instanceof Error ? error.message : 'Unexpected error' });
   }
 }
