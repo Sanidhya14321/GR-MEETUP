@@ -10,6 +10,14 @@ function formatDateInput(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+const MAX_STUDY_PLAN_DAYS = 90;
+
+function addDays(date: Date, days: number): Date {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
 interface StudyDay {
   day: number;
   topics: string[];
@@ -39,12 +47,20 @@ export default function StudyPlanPage() {
   const [plan, setPlan] = useState<StudyPlanResponse['plan'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const today = new Date();
+  const minDate = formatDateInput(addDays(today, 1));
+  const maxDate = formatDateInput(addDays(today, MAX_STUDY_PLAN_DAYS));
 
   const topicList = useMemo(() => topics.split(',').map((topic) => topic.trim()).filter(Boolean), [topics]);
 
   const handleGenerate = async () => {
     if (!examDate) {
       setError('Choose an exam date.');
+      return;
+    }
+
+    if (examDate < minDate || examDate > maxDate) {
+      setError(`Choose a future date within ${MAX_STUDY_PLAN_DAYS} days.`);
       return;
     }
 
@@ -83,7 +99,15 @@ export default function StudyPlanPage() {
         <Card>
           <div className="space-y-5">
             <Input label="Subject" value={subject} onChange={(event) => setSubject(event.target.value)} />
-            <Input label="Exam date" type="date" value={examDate} onChange={(event) => setExamDate(event.target.value)} />
+            <Input
+              label="Exam date"
+              type="date"
+              value={examDate}
+              onChange={(event) => setExamDate(event.target.value)}
+              helperText={`Choose a future date within ${MAX_STUDY_PLAN_DAYS} days.`}
+              min={minDate}
+              max={maxDate}
+            />
             <div className="space-y-2">
               <label className="block text-sm font-medium text-neutral-900">Current level</label>
               <select
